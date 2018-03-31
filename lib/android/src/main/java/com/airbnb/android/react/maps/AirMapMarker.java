@@ -1,5 +1,8 @@
 package com.airbnb.android.react.maps;
 
+import android.animation.ObjectAnimator;
+import android.animation.TimeInterpolator;
+import android.animation.TypeEvaluator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,11 +11,10 @@ import android.graphics.Color;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.animation.ObjectAnimator;
 import android.util.Property;
-import android.animation.TypeEvaluator;
+import android.view.View;
+import android.view.animation.LinearInterpolator;
+import android.widget.LinearLayout;
 
 import com.facebook.common.references.CloseableReference;
 import com.facebook.datasource.DataSource;
@@ -622,6 +624,38 @@ public class AirMapMarker extends AirMapFeature {
 
   private BitmapDescriptor getBitmapDescriptorByName(String name) {
     return BitmapDescriptorFactory.fromResource(getDrawableResourceByName(name));
+  }
+
+
+  public void setCoordinate(LatLng latLng) {
+    marker.setPosition(latLng);
+  }
+
+  private TypeEvaluator<LatLng> typeEvaluator = new TypeEvaluator<LatLng>() {
+    @Override
+    public LatLng evaluate(float fraction, LatLng startPosition, LatLng endPosition) {
+      double lat = (endPosition.latitude - startPosition.latitude) * fraction + startPosition.latitude;
+      double lng = (endPosition.longitude - startPosition.longitude) * fraction + startPosition.longitude;
+      // double lat = startPosition.latitude * (1 - fraction) + endPosition.latitude * fraction;
+      // double lng = startPosition.longitude * (1 - fraction) + endPosition.longitude * fraction;
+      return new LatLng(lat, lng);
+    }
+  };
+
+  private Property<Marker, LatLng> property = Property.of(Marker.class, LatLng.class, "position");
+
+  private TimeInterpolator interpolator = new LinearInterpolator();
+
+  private ObjectAnimator animator;
+
+  public void animateCoodinate(LatLng finalPosition, Integer duration) {
+    if (animator != null) {
+      animator.cancel();
+    }
+    animator = ObjectAnimator.ofObject(marker, property, typeEvaluator, finalPosition);
+    animator.setInterpolator(interpolator);
+    animator.setDuration(duration * 2);
+    animator.start();
   }
 
 }

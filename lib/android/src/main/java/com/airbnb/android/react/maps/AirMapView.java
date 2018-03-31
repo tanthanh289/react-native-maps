@@ -848,8 +848,15 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
     CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, baseMapPadding);
 
     if (edgePadding != null) {
-      map.setPadding(edgePadding.getInt("left"), edgePadding.getInt("top"),
-          edgePadding.getInt("right"), edgePadding.getInt("bottom"));
+      int density = (int) getResources().getDisplayMetrics().density;
+      int left = edgePadding.getInt("left") * density;
+      int top = edgePadding.getInt("top") * density;
+      int right = edgePadding.getInt("right") * density;
+      int bottom = edgePadding.getInt("bottom") * density;
+      map.setPadding(left, top, right, bottom);
+
+      // map.setPadding(edgePadding.getInt("left"), edgePadding.getInt("top"),
+      //     edgePadding.getInt("right"), edgePadding.getInt("bottom"));
     }
 
     if (animated) {
